@@ -31,10 +31,9 @@ int main(int argc, char *argv[])
 
 
     /* verification qu'il y a le bon nombre d'argument */
-    int i;
-    for (i = 1; i < argc; i++)
-    {
-        printf("arg[%d] = %s\n", i, argv[i]);
+    if (argc != 2) {
+        fprintf(stderr,"ERREUR : ---> nombre d'arguments invalides\n");
+        return 1;
     }
 
     if (*argv[1] == 'L')
