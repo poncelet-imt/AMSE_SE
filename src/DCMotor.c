@@ -2,6 +2,7 @@
 /* processus de lecture d'une zone de memoire  */
 /* partagee avec les appels POSIX              */
 /*=============================================*/
+#include <signal.h> 
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,6 +24,23 @@
 #define STOP            "STOP"      /* ->chaine a saisir pour declencher l'arret */
 #define STR_LEN         256         /* ->taille par defaut des chaines           */
 #define MEMORY_LEN      64
+
+int g_run= 1;
+
+
+/*............*/
+/* prototype  */
+/*............*/
+extern char *strsignal( int);
+void signal_handler( int ); /* ->routine de gestion du signal recu */
+void signal_handler( int signal ) /* ->code du signal recu */
+{
+    g_run = 0;
+    /* strsignal retourne la chaine de caracteres */
+    /* qui correspond au "nom symbolique" du signal */
+    printf("%s\n", (char *)(strsignal( signal )) );
+}
+
 
 /*######*/
 /* main */
@@ -176,6 +194,19 @@ int main(int argc, char *argv[])
         return( -errno );
     };
 
+    struct sigaction sa; /* ->structure permettant de definir le gestionnaire */
+    /* et d'y associer le signal a traiter, etc. */
+    sigset_t blocked; /* ->contiendra la liste des signaux qui seront masques */
+    /* on ne bloque aucun signal : blocked = vide */
+    sigemptyset( &blocked );
+    /* mise a jour de la structure sigaction */
+    memset( &sa, 0, sizeof(struct sigaction));
+    sa.sa_handler = signal_handler; /* ->precise le gestionnaire a utiliser */
+    sa.sa_flags = 0; /* ->fonctionnement "normal" */
+    sa.sa_mask = blocked; /* ->indique les signaux masques */
+    /* installation EFFECTIVE du gestionnaire */
+    sigaction( SIGUSR1, &sa, NULL ); /* ->associe signal_handler a la reception de SIGUSR1 */
+
 
 
 
@@ -185,7 +216,6 @@ int main(int argc, char *argv[])
 
     *i_k = b0 * (*u);
     *w_k = b1 * (*i_k);
-    
     /* affichage + calcule */
     do
     {
@@ -195,9 +225,10 @@ int main(int argc, char *argv[])
         *i_k = i_k1;
         *w_k = w_k1;
         printf("u = %lf\t w = %lf\t i = %lf\n", *u, *w_k, *i_k);
+        sleep(1);
 
     }
-    while( 1 );
+    while( g_run );
     //shm_unlink(AREA_NAME);
     return( 0 );
 }
