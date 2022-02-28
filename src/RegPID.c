@@ -18,15 +18,18 @@
 /*............*/
 #define AREA_COMMANDE_L    "COMMAND_L"    /* ->nom de la zone de lecture commande_l              */
 #define AREA_STATE_L       "STATE_L"      /* ->nom de la zone d'ecriture state_l                 */
+#define AREA_TARGET_L           "TARGET_L"     /* ->nom de la zone d'ecriture target_l                 */
 #define AREA_COMMANDE_R    "COMMAND_R"    /* ->nom de la zone de lecture commande_r              */
 #define AREA_STATE_R       "STATE_R"      /* ->nom de la zone d'ecriture state_l                 */
+#define AREA_TARGET_R           "TARGET_R"     /* ->nom de la zone d'ecriture target_r                 */
 
 #define STR_LEN         256         /* ->taille par defaut des chaines           */
 #define MEMORY_LEN      64
 
-#define NBR_ARG 8
+#define NBR_ARG 5
 
 int g_run= 1;
+int g_pause = 0;
 
 
 /*............*/
@@ -36,8 +39,12 @@ extern char *strsignal( int);
 void signal_handler( int ); /* ->routine de gestion du signal recu */
 void signal_handler( int signal ) /* ->code du signal recu */
 {
-    g_run = 0;
-    /* strsignal retourne la chaine de caracteres */
+    if (signal == SIGUSR1) {
+        g_run = 0;
+    } else if (signal == SIGUSR2) {
+        g_pause = 1 - g_pause;
+        printf("Processus stoppe!");
+    }
     /* qui correspond au "nom symbolique" du signal */
     printf("%s\n", (char *)(strsignal( signal )) );
 }
@@ -49,28 +56,25 @@ void signal_handler( int signal ) /* ->code du signal recu */
 int main(int argc, char *argv[])
 {
     double *u;                    /* ->variable partagee pour commande                */
+    double *tv;                   /* ->variable partagee pour target                  */
     double *w_k;                  /* ->variable partagee pour la vitesse de rotation  */
     double *i_k;                  /* ->variable partagee pour l'intensite du moteur   */
-    double w_k1;                  /* ->variable pour la vitesse de rotation au temps k+1 */
-    double i_k1;                  /* ->variablepour l'intensiter du moteur au temps k+1  */
 
 
-    double R; /* resistance */
-    double L; /* inductance */
-    double Ke; /* constante electrique */
-    double Km; /* constante moteur */
-    double f; /* coefficient de frottement */
-    double J; /* inercite sur le rotor */
-    double Te; /* periode d'echantillonage */
+    double K; /* action proportionnelle */
+    double I; /* action intregrale */
+    double D; /* action derivee */
+    double T0; /* periode de l'alarme cyclique */
 
-    double z0;
-    double z1;
-    double b0;
-    double b1;
+    double e_k; /* erreur courante */
+    double E_k; /* Intergrale de l'erreur */
+    double e_k1; /* e k-1 */
+    double E_k1; /* E k-1 */
 
 
     char areaCommande[STR_LEN];
     char areaState[STR_LEN];
+    char areaTarget[STR_LEN];
 
 
     /* verification qu'il y a le bon nombre d'argument */
@@ -83,59 +87,40 @@ int main(int argc, char *argv[])
     {
         strcpy(areaCommande, AREA_COMMANDE_L);
         strcpy(areaState, AREA_STATE_L);
+        strcpy(areaTarget, AREA_TARGET_L);
 
     }
     else if (*argv[1] == 'R')
     {
         strcpy(areaCommande, AREA_COMMANDE_R);
         strcpy(areaState, AREA_STATE_R);
+        strcpy(areaTarget, AREA_TARGET_R);
     } else
     {
         fprintf(stderr,"ERREUR : ---> parametre 1: Directionnel non reconnu\n");
         return 1;
     }
 
-    if (sscanf(argv[2], "%lf", &R)  == 0) 
+    if (sscanf(argv[2], "%lf", &K)  == 0) 
     {
-        fprintf(stderr,"ERREUR : ---> parametre 2: Resistance doit etre un double\n");
+        fprintf(stderr,"ERREUR : ---> parametre 2: Action proportionnelle doit etre un double\n");
         return 1;
     }
-    if (sscanf(argv[3], "%lf", &L)  == 0) 
+    if (sscanf(argv[3], "%lf", &I)  == 0) 
     {
-        fprintf(stderr,"ERREUR : ---> parametre 3: Inductance doit etre un double\n");
+        fprintf(stderr,"ERREUR : ---> parametre 3: Action Intergrale doit etre un double\n");
         return 1;
     }
-    if (sscanf(argv[4], "%lf", &Ke)  == 0) 
+    if (sscanf(argv[4], "%lf", &D)  == 0) 
     {
-        fprintf(stderr,"ERREUR : ---> parametre 4: Constante electrique doit etre un double\n");
+        fprintf(stderr,"ERREUR : ---> parametre 4: Action Derivee electrique doit etre un double\n");
         return 1;
     }
-    if (sscanf(argv[5], "%lf", &Km)  == 0) 
+    if (sscanf(argv[5], "%lf", &T0)  == 0) 
     {
-        fprintf(stderr,"ERREUR : ---> parametre 5: Constante moteur doit etre un double\n");
+        fprintf(stderr,"ERREUR : ---> parametre 5: Periode rafrechissement moteur doit etre un double\n");
         return 1;
     }
-    if (sscanf(argv[6], "%lf", &f)  == 0) 
-    {
-        fprintf(stderr,"ERREUR : ---> parametre 6: Coefficient de frottement doit etre un double\n");
-        return 1;
-    }
-    if (sscanf(argv[7], "%lf", &J)  == 0) 
-    {
-        fprintf(stderr,"ERREUR : ---> parametre 7: Inercie doit etre un double\n");
-        return 1;
-    }
-    if (sscanf(argv[8], "%lf", &Te)  == 0) 
-    {
-        fprintf(stderr,"ERREUR : ---> parametre 8: Temps d'echantillon doit etre un double\n");
-        return 1;
-    }
-
-    /* calcul des constantes z et b*/
-    z0 = exp(-Te * R / L);
-    b0 = (1 - z0) / R;
-    z1 = exp(-Te * f / J);
-    b1 = Km * (1 - z1) / f;
 
     void *vAddrCommande;                    /* ->adresse virtuelle sur la zone          */
     int  iShmFdCommande;                    /* ->descripteur associe a la zone partagee */
@@ -158,6 +143,33 @@ int main(int argc, char *argv[])
     /* tentative de mapping de la zone dans l'espace memoire du */
     /* processus                                                */
     if( (vAddrCommande = mmap(NULL, MEMORY_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, iShmFdCommande, 0 ))  == NULL)
+    {
+        fprintf(stderr,"ERREUR : ---> appel a mmap()\n");
+        fprintf(stderr,"         code  = %d (%s)\n", errno, (char *)(strerror(errno)));
+        return( -errno );
+    };
+
+    void *vAddrTarget;                    /* ->adresse virtuelle sur la zone          */
+    int  iShmFdTarget;                    /* ->descripteur associe a la zone partagee */
+    /*..................................*/
+    /* tentative d'acces a la zone Target */
+    /*..................................*/
+    if( (iShmFdTarget = shm_open(areaTarget, O_RDWR | O_CREAT, 0600)) < 0)
+    {
+        /* on essaie de se lier sans creer... */
+        printf("echec de creation, lien seul...\n");
+        if( (iShmFdTarget = shm_open(areaTarget, O_RDWR, 0600)) < 0)
+        {  
+            fprintf(stderr,"ERREUR : ---> appel a shm_open()\n");
+            fprintf(stderr,"         code  = %d (%s)\n", errno, (char *)(strerror(errno)));
+            return( -errno );
+        };
+    };
+    /* on attribue la taille a la zone partagee */
+    ftruncate(iShmFdTarget, MEMORY_LEN);
+    /* tentative de mapping de la zone dans l'espace memoire du */
+    /* processus                                                */
+    if( (vAddrTarget = mmap(NULL, MEMORY_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, iShmFdTarget, 0 ))  == NULL)
     {
         fprintf(stderr,"ERREUR : ---> appel a mmap()\n");
         fprintf(stderr,"         code  = %d (%s)\n", errno, (char *)(strerror(errno)));
@@ -204,25 +216,32 @@ int main(int argc, char *argv[])
     sa.sa_mask = blocked; /* ->indique les signaux masques */
     /* installation EFFECTIVE du gestionnaire */
     sigaction( SIGUSR1, &sa, NULL ); /* ->associe signal_handler a la reception de SIGUSR1 */
-
-
-
+    sigaction( SIGUSR2, &sa, NULL ); /* ->associe signal_handler a la reception de SIGUSR2 */
 
     u = (double *)(vAddrCommande);
+    tv = (double *)(vAddrTarget);
     w_k = (double *)(vAddrState);
     i_k = (double *)(vAddrState + sizeof(double));
 
-    *i_k = b0 * (*u);
-    *w_k = b1 * (*i_k);
+    e_k = (*tv) - (*w_k);
+    E_k = T0 * e_k;
     /* affichage + calcul */
     do
     {
-        i_k1 = z0 * (*i_k) - Ke * b0 * (*w_k) + b0 * (*u);
-        w_k1 = z1 * (*w_k) + b1 * (*i_k);
+        e_k1 = e_k;
+        E_k1 = E_k;
 
-        *i_k = i_k1;
-        *w_k = w_k1;
-        printf("u = %lf\t w = %lf\t i = %lf\n", *u, *w_k, *i_k);
+        e_k = (*tv) - (*w_k);
+        E_k = E_k1 + T0 * e_k; 
+
+        *u = K * ( e_k + I * E_k + D * (e_k - e_k1) / T0 );
+        printf("tv = %lf\t wk = %lf\t u = %lf\n", *tv, *w_k, *u);
+        while (g_pause)
+        {
+            sleep(1);
+        }
+        
+        
 
     }
     while( g_run );
