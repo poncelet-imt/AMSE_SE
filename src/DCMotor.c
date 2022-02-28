@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
     ftruncate(iShmFdState, 2*MEMORY_LEN);
     /* tentative de mapping de la zone dans l'espace memoire du */
     /* processus                                                */
-    if( (vAddrState = mmap(NULL, MEMORY_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, iShmFdState, 0 ))  == NULL)
+    if( (vAddrState = mmap(NULL, 2*MEMORY_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, iShmFdState, 0 ))  == NULL)
     {
         fprintf(stderr,"ERREUR : ---> appel a mmap()\n");
         fprintf(stderr,"         code  = %d (%s)\n", errno, (char *)(strerror(errno)));

@@ -28,6 +28,19 @@
 
 int g_run= 1;
 
+/*............*/
+/* prototype  */
+/*............*/
+extern char *strsignal( int);
+void signal_handler( int ); /* ->routine de gestion du signal recu */
+void signal_handler( int signal ) /* ->code du signal recu */
+{
+    g_run = 0;
+    /* strsignal retourne la chaine de caracteres */
+    /* qui correspond au "nom symbolique" du signal */
+    printf("%s\n", (char *)(strsignal( signal )) );
+}
+
 
 /*######*/
 /* main */
@@ -87,7 +100,7 @@ int main(int argc, char *argv[])
         };
     };
     /* on attribue la taille a la zone partagee */
-    ftruncate(iShmFdVelocity, MEMORY_LEN);
+    ftruncate(iShmFdVelocity, 2*MEMORY_LEN);
     /* tentative de mapping de la zone dans l'espace memoire du */
     /* processus                                                */
     if( (vAddrVelocity = mmap(NULL, MEMORY_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, iShmFdVelocity, 0 ))  == NULL)
@@ -114,7 +127,7 @@ int main(int argc, char *argv[])
         };
     };
     /* on attribue la taille a la zone partagee */
-    ftruncate(iShmFdPosition, MEMORY_LEN);
+    ftruncate(iShmFdPosition, 3*MEMORY_LEN);
     /* tentative de mapping de la zone dans l'espace memoire du */
     /* processus                                                */
     if( (vAddrPosition = mmap(NULL, MEMORY_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, iShmFdPosition, 0 ))  == NULL)
@@ -124,35 +137,47 @@ int main(int argc, char *argv[])
         return( -errno );
     };
 
+    struct sigaction sa; /* ->structure permettant de definir le gestionnaire */
+    /* et d'y associer le signal a traiter, etc. */
+    sigset_t blocked; /* ->contiendra la liste des signaux qui seront masques */
+    /* on ne bloque aucun signal : blocked = vide */
+    sigemptyset( &blocked );
+    /* mise a jour de la structure sigaction */
+    memset( &sa, 0, sizeof(struct sigaction));
+    sa.sa_handler = signal_handler; /* ->precise le gestionnaire a utiliser */
+    sa.sa_flags = 0; /* ->fonctionnement "normal" */
+    sa.sa_mask = blocked; /* ->indique les signaux masques */
+    /* installation EFFECTIVE du gestionnaire */
+    sigaction( SIGUSR1, &sa, NULL ); /* ->associe signal_handler a la reception de SIGUSR1 */
+
     
     //vAddrPosition
     //CAST ZONES PARTAGEES
     w_c = (double *)(vAddrVelocity);
     v_c = (double *)(vAddrVelocity + sizeof(double));
 
-    x_k = (double *)(vAddrVelocity);
-    y_k = (double *)(vAddrVelocity + sizeof(double));
-    q_k = (double *)(vAddrVelocity + sizeof(double) + sizeof(double));
+    x_k = (double *)(vAddrPosition);
+    y_k = (double *)(vAddrPosition + sizeof(double));
+    q_k = (double *)(vAddrPosition + 2 * sizeof(double));
 
     //INIT k=0
-    x_k = 0;
-    y_k = 0;
-    q_k = 0;
-
+    *x_k = 0.0;
+    *y_k = 0.0;
+    *q_k = 0.0;
 
     
     /* affichage + calcul */
     do
     {
-        x_k1 = *(x_k) - *(v_c) * Te * math.sin(*(q_k));
-        y_k1 = *(y_k) + *(v_c) * Te * math.cos(*(q_k));
-        q_k1 = *(q_k) + Te * *(w_c);
-
+        x_k1 = (*x_k) - (*v_c) * Te * sin((*q_k));
+        y_k1 = (*y_k) + (*v_c) * Te * cos((*q_k));
+        q_k1 = (*q_k) + Te * (*w_c);
+        
         *x_k = x_k1;
         *y_k = y_k1;
-        *q_k1 = q_k1;
-
+        *q_k = q_k1;
         printf("w_c = %lf\t v_c = %lf\t x = %lf\t y = %lf\t q = %lf\n", *w_c, *v_c, *x_k, *y_k, *q_k);
+        sleep(1);
     }
     while( g_run );
     //shm_unlink(AREA_NAME);

@@ -29,6 +29,20 @@
 int g_run= 1;
 
 
+/*............*/
+/* prototype  */
+/*............*/
+extern char *strsignal( int);
+void signal_handler( int ); /* ->routine de gestion du signal recu */
+void signal_handler( int signal ) /* ->code du signal recu */
+{
+    g_run = 0;
+    /* strsignal retourne la chaine de caracteres */
+    /* qui correspond au "nom symbolique" du signal */
+    printf("%s\n", (char *)(strsignal( signal )) );
+}
+
+
 /*######*/
 /* main */
 /*######*/
@@ -97,10 +111,10 @@ int main(int argc, char *argv[])
         };
     };
     /* on attribue la taille a la zone partagee */
-    ftruncate(iShmFdStateLeft, MEMORY_LEN);
+    ftruncate(iShmFdStateLeft, 2*MEMORY_LEN);
     /* tentative de mapping de la zone dans l'espace memoire du */
     /* processus                                                */
-    if( (vAddrStateLeft = mmap(NULL, MEMORY_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, iShmFdStateLeft, 0 ))  == NULL)
+    if( (vAddrStateLeft = mmap(NULL, 2*MEMORY_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, iShmFdStateLeft, 0 ))  == NULL)
     {
         fprintf(stderr,"ERREUR : ---> appel a mmap()\n");
         fprintf(stderr,"         code  = %d (%s)\n", errno, (char *)(strerror(errno)));
@@ -125,10 +139,10 @@ int main(int argc, char *argv[])
         };
     };
     /* on attribue la taille a la zone partagee */
-    ftruncate(iShmFdStateRight, MEMORY_LEN);
+    ftruncate(iShmFdStateRight, 2*MEMORY_LEN);
     /* tentative de mapping de la zone dans l'espace memoire du */
     /* processus                                                */
-    if( (vAddrStateRight = mmap(NULL, MEMORY_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, iShmFdStateRight, 0 ))  == NULL)
+    if( (vAddrStateRight = mmap(NULL, 2*MEMORY_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, iShmFdStateRight, 0 ))  == NULL)
     {
         fprintf(stderr,"ERREUR : ---> appel a mmap()\n");
         fprintf(stderr,"         code  = %d (%s)\n", errno, (char *)(strerror(errno)));
@@ -153,15 +167,29 @@ int main(int argc, char *argv[])
         };
     };
     /* on attribue la taille a la zone partagee */
-    ftruncate(iShmFdVelocity, MEMORY_LEN);
+    ftruncate(iShmFdVelocity, 2*MEMORY_LEN);
     /* tentative de mapping de la zone dans l'espace memoire du */
     /* processus                                                */
-    if( (vAddrVelocity = mmap(NULL, MEMORY_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, iShmFdVelocity, 0 ))  == NULL)
+    if( (vAddrVelocity = mmap(NULL, 2*MEMORY_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, iShmFdVelocity, 0 ))  == NULL)
     {
         fprintf(stderr,"ERREUR : ---> appel a mmap()\n");
         fprintf(stderr,"         code  = %d (%s)\n", errno, (char *)(strerror(errno)));
         return( -errno );
     };
+
+
+    struct sigaction sa; /* ->structure permettant de definir le gestionnaire */
+    /* et d'y associer le signal a traiter, etc. */
+    sigset_t blocked; /* ->contiendra la liste des signaux qui seront masques */
+    /* on ne bloque aucun signal : blocked = vide */
+    sigemptyset( &blocked );
+    /* mise a jour de la structure sigaction */
+    memset( &sa, 0, sizeof(struct sigaction));
+    sa.sa_handler = signal_handler; /* ->precise le gestionnaire a utiliser */
+    sa.sa_flags = 0; /* ->fonctionnement "normal" */
+    sa.sa_mask = blocked; /* ->indique les signaux masques */
+    /* installation EFFECTIVE du gestionnaire */
+    sigaction( SIGUSR1, &sa, NULL ); /* ->associe signal_handler a la reception de SIGUSR1 */
 
     //CAST ZONES PARTAGEES
     w_l = (double *)(vAddrStateLeft);
