@@ -17,9 +17,9 @@
 /* constantes */
 /*............*/
 #define AREA_STATE_L       "STATE_L"      /* ->nom de la zone d'ecriture state_l                 */
-#define AREA_STATE_R       "STATE_R"      /* ->nom de la zone d'ecriture state_l                 */
+#define AREA_STATE_R       "STATE_R"      /* ->nom de la zone d'ecriture state_r                 */
 
-#define AREA_VELOCITY    "VELOCITY"    /* ->nom de la zone de lecture commande_l              */
+#define AREA_VELOCITY    "VELOCITY"    /* ->nom de la zone de lecture velocity             */
 
 #define STR_LEN         256         /* ->taille par defaut des chaines           */
 #define MEMORY_LEN      64
