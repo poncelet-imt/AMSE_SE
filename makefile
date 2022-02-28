@@ -9,7 +9,8 @@ EXEC:= DCMotor \
 	ResetState \
 	SetU \
 	SetTv \
-	Kinematics
+	Kinematics \
+	Odometry
 
 
 EXEC_PATH := $(EXEC:%=$(BIN_DIR)/%)
