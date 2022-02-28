@@ -223,6 +223,7 @@ int main(int argc, char *argv[])
         *i_k = i_k1;
         *w_k = w_k1;
         printf("u = %lf\t w = %lf\t i = %lf\n", *u, *w_k, *i_k);
+        sleep(1);
 
     }
     while( g_run );

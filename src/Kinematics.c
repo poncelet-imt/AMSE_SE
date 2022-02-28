@@ -63,17 +63,17 @@ int main(int argc, char *argv[])
     strcpy(areaVelocity, AREA_VELOCITY);
 
 
-    if (sscanf(argv[1], "%lf", &K)  == 0) 
+    if (sscanf(argv[1], "%lf", &W)  == 0) 
     {
         fprintf(stderr,"ERREUR : ---> parametre 1: Entraxe doit etre un double\n");
         return 1;
     }
-    if (sscanf(argv[2], "%lf", &I)  == 0) 
+    if (sscanf(argv[2], "%lf", &R0)  == 0) 
     {
         fprintf(stderr,"ERREUR : ---> parametre 2: Rayon commun des roues doit etre un double\n");
         return 1;
     }
-    if (sscanf(argv[3], "%lf", &T0)  == 0) 
+    if (sscanf(argv[3], "%lf", &Te)  == 0) 
     {
         fprintf(stderr,"ERREUR : ---> parametre 5: Periode échantillonage moteur doit etre un double\n");
         return 1;
@@ -176,6 +176,7 @@ int main(int argc, char *argv[])
         *w_c = R0 * ( *(w_r) - *(w_l) ) / W;
 
         printf("w_l = %lf\t w_r = %lf\t w_c = %lf\t v_c = %lf\n", *w_l, *w_r, *w_c, *v_c);
+        sleep(1);
     }
     while( g_run );
     //shm_unlink(AREA_NAME);
