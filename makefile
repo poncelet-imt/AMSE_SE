@@ -15,10 +15,13 @@ EXEC:= DCMotor \
 EXEC_PATH := $(EXEC:%=$(BIN_DIR)/%)
 
 
-.PHONY: all
+.PHONY: all clean
 
 all: $(EXEC_PATH)
 	@echo "building"
 
 $(BIN_DIR)/%: $(SRC_DIR)/%.c
 	$(CC) $^ $(C_FLAG) -o $@
+
+clean:
+	rm -rvf $(EXEC_PATH)
