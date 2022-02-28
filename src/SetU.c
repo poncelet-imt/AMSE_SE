@@ -26,7 +26,6 @@
 /*######*/
 int main(int argc, char *argv[])
 {
-    int is_right;
     char areaCommande[STR_LEN];
 
 
@@ -38,13 +37,11 @@ int main(int argc, char *argv[])
 
     if (*argv[1] == 'L')
     {
-        is_right = 0;
         strcpy(areaCommande, AREA_COMMANDE_L);
 
     }
     else if (*argv[1] == 'R')
     {
-        is_right = 1;
         strcpy(areaCommande, AREA_COMMANDE_R);
     } else
     {
@@ -85,6 +82,6 @@ int main(int argc, char *argv[])
     }
     while( 1 );
     printf("FIN\n");
-    shm_unlink(areaCommande);
+    //shm_unlink(areaCommande);
     return( 0 );
 }
