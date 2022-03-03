@@ -24,7 +24,8 @@
 #define STR_LEN         256         /* ->taille par defaut des chaines           */
 #define MEMORY_LEN      64
 
-#define NBR_ARG 3
+#define NBR_ARG_MIN 3
+#define NBR_ARG_MAX 4
 
 int g_run= 1;
 
@@ -49,6 +50,8 @@ void signal_handler( int signal ) /* ->code du signal recu */
 int main(int argc, char *argv[])
 {
     double t;
+    double t_max = 0.0;
+    int stop_t_max = 0;           /* bool to stop at t max                            */
     double *w_l;                  /* ->variable partagee pour la vitesse de rotation gauche */
     double *w_r;                  /* ->variable partagee pour la vitesse de rotation droite */
     double *w_c;                  /* ->variable partagee pour la vitesse de rotation centrale */
@@ -67,7 +70,7 @@ int main(int argc, char *argv[])
     char areaVelocity[STR_LEN];
 
     /* verification qu'il y a le bon nombre d'argument */
-    if (argc != NBR_ARG + 1) {
+    if ((argc < NBR_ARG_MIN + 1) || (argc > NBR_ARG_MAX + 1)) {
         fprintf(stderr,"ERREUR : ---> nombre d'arguments invalides\n");
         return 1;
     }
@@ -91,6 +94,18 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr,"ERREUR : ---> parametre 5: Periode échantillonage moteur doit etre un double\n");
         return 1;
+    }
+    if (argc > NBR_ARG_MIN + 1) 
+    {
+        if (sscanf(argv[4], "%lf", &t_max)  == 0)
+        {
+            fprintf(stderr,"ERREUR : ---> parametre optionnel 6: temps max doit etre un double\n");
+            return 1;
+        }
+        else 
+        {
+            stop_t_max = 1;
+        }
     }
 
 
@@ -209,9 +224,10 @@ int main(int argc, char *argv[])
 
         printf("%lf,%lf,%lf,%lf,%lf\n", t, *w_l, *w_r, *w_c, *v_c);
         fflush(stdout);
-        sleep(1);
+        usleep(5000);
+
     }
-    while( g_run );
+    while(  g_run && !(stop_t_max && (t > t_max)) );
     //shm_unlink(AREA_NAME);
     return( 0 );
 }

@@ -24,7 +24,6 @@
 #define STR_LEN         256         /* ->taille par defaut des chaines           */
 #define MEMORY_LEN      64
 
-
 #define NBR_ARG_MIN 8
 #define NBR_ARG_MAX 9
 
@@ -246,7 +245,7 @@ int main(int argc, char *argv[])
         usleep(5000);
 
     }
-    while( g_run && !(stop_t_max && (t > t_max)));
+    while( g_run && !(stop_t_max && (t > t_max)) );
     //shm_unlink(AREA_NAME);
     return( 0 );
 }
