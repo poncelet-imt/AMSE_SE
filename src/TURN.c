@@ -25,7 +25,7 @@
 #define STR_LEN         256         /* ->taille par defaut des chaines           */
 #define MEMORY_LEN      64
 
-#define EPSILON 0.0001
+#define EPSILON 0.0005
 
 #define NBR_ARG 2
 
@@ -198,20 +198,20 @@ int main(int argc, char *argv[])
     y_0 = *y;
     q_0 = *q;
     
-    errorAngle =  fmod(fabs(*q - q_0), 2*M_PI) - fmod(angle, 2*M_PI);
+    errorAngle =  fabs(*q - q_0) - fmod(angle, 2*M_PI);
     /* affichage + calcul */
     do
     {
         
-        errorAngle = fmod(fabs(*q - q_0), 2*M_PI) - fmod(angle, 2*M_PI);
+        errorAngle = fabs(*q - q_0) - fmod(angle, 2*M_PI);
         if (errorAngle > 0.0)
         {
             *tvR = -w;
             *tvL = w;
         } else if (errorAngle < 0.0)
         {
-            *tvR = -w;
-            *tvL = w;
+            *tvR = w;
+            *tvL = -w;
         } else {
             *tvR = 0.0;
             *tvL = 0.0;

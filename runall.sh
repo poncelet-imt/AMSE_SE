@@ -17,7 +17,6 @@ PI="3.14"
 K="0.009"
 I="13.5"
 Te="0.01"
-tMax="5.0"
 
 $binDir"ResetState" L >> /dev/null
 $binDir"ResetState" R >> /dev/null
