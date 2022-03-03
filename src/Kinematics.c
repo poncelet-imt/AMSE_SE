@@ -208,6 +208,7 @@ int main(int argc, char *argv[])
         *w_c = R0 * ( *(w_r) - *(w_l) ) / W;
 
         printf("%lf,%lf,%lf,%lf,%lf\n", t, *w_l, *w_r, *w_c, *v_c);
+        fflush(stdout);
         sleep(1);
     }
     while( g_run );

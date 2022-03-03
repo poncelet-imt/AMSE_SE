@@ -179,6 +179,7 @@ int main(int argc, char *argv[])
         *y_k = y_k1;
         *q_k = q_k1;
         printf("%lf,%lf,%lf,%lf,%lf,%lf,\n", t, *w_c, *v_c, *x_k, *y_k, *q_k);
+        fflush(stdout);
         sleep(1);
     }
     while( g_run );

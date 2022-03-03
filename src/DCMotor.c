@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
     *i_k = b0 * (*u);
     *w_k = b1 * (*i_k);
     /* affichage + calcul */
-    printf("t,u,w_k,i_k\n");
+    printf("\"t\",\"u\",\"w_k\",\"i_k\"\n");
     do
     {
         t += Te;
@@ -226,6 +226,7 @@ int main(int argc, char *argv[])
         *i_k = i_k1;
         *w_k = w_k1;
         printf("%lf,%lf,%lf,%lf\n", t, *u, *w_k, *i_k);
+        fflush(stdout);
         sleep(1);
 
     }

@@ -246,6 +246,7 @@ int main(int argc, char *argv[])
             sleep(1);
         }
         printf("%lf,%lf,%lf,%lf\n", t, *tv, *w_k, *u);
+        fflush(stdout);
         sleep(1);
 
     }
