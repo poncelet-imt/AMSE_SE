@@ -39,7 +39,7 @@ void signal_handler( int signal ) /* ->code du signal recu */
     g_run = 0;
     /* strsignal retourne la chaine de caracteres */
     /* qui correspond au "nom symbolique" du signal */
-    printf("%s\n", (char *)(strsignal( signal )) );
+    fprintf(stderr, "%s\n", (char *)(strsignal( signal )) );
 }
 
 
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
         *q_k = q_k1;
         printf("%lf,%lf,%lf,%lf,%lf,%lf\n", t, *w_c, *v_c, *x_k, *y_k, *q_k);
         fflush(stdout);
-        usleep(5000);
+        usleep(1000);
 
     }
     while( g_run && !(stop_t_max && (t > t_max)) );
