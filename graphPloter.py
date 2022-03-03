@@ -22,10 +22,15 @@ def main():
     data = readCsv(**kwargs)
     print(kwargs['draw'])
 
-    for name in kwargs['draw'] if kwargs['draw'] else data:
-        if name != "t":
-            plt.plot(data["t"], data[name], label=name)
-    
+    if kwargs['xy']:
+        plt.plot(data["x"], data["y"], label="robot")
+        plt.xlabel("x")
+        plt.ylabel("y")
+    else:
+        for name in kwargs['draw'] if kwargs['draw'] else data:
+            if name != "t":
+                plt.plot(data["t"], data[name], label=name)
+        
     plt.legend()
     plt.grid()
     plt.show()
@@ -42,6 +47,8 @@ def getArgs():
         action='store_true')
     parser.add_argument('--draw', metavar='D', help="specify the serie you want to draw",
         nargs='*')
+    parser.add_argument('--xy', help="use if you have a x and y values and want to plot them",
+        action='store_true')
 
     args = parser.parse_args()
     return args
