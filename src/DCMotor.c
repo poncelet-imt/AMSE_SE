@@ -48,6 +48,7 @@ void signal_handler( int signal ) /* ->code du signal recu */
 /*######*/
 int main(int argc, char *argv[])
 {
+    double t;
     double *u;                    /* ->variable partagee pour commande                */
     double *w_k;                  /* ->variable partagee pour la vitesse de rotation  */
     double *i_k;                  /* ->variable partagee pour l'intensite du moteur   */
@@ -207,7 +208,7 @@ int main(int argc, char *argv[])
 
 
 
-
+    t = 0.0;
     u = (double *)(vAddrCommande);
     w_k = (double *)(vAddrState);
     i_k = (double *)(vAddrState + sizeof(double));
@@ -215,14 +216,16 @@ int main(int argc, char *argv[])
     *i_k = b0 * (*u);
     *w_k = b1 * (*i_k);
     /* affichage + calcul */
+    printf("t,u,w_k,i_k\n");
     do
     {
+        t += Te;
         i_k1 = z0 * (*i_k) - Ke * b0 * (*w_k) + b0 * (*u);
         w_k1 = z1 * (*w_k) + b1 * (*i_k);
 
         *i_k = i_k1;
         *w_k = w_k1;
-        printf("u = %lf\t w = %lf\t i = %lf\n", *u, *w_k, *i_k);
+        printf("%lf,%lf,%lf,%lf\n", t, *u, *w_k, *i_k);
         sleep(1);
 
     }

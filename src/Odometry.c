@@ -47,7 +47,7 @@ void signal_handler( int signal ) /* ->code du signal recu */
 /*######*/
 int main(int argc, char *argv[])
 {
-
+    double t;
     double *w_c;                  /* ->variable partagee pour la vitesse de rotation centrale */
     double *v_c;                  /* ->variable partagee pour la vitesse centrale du robot */
 
@@ -164,11 +164,13 @@ int main(int argc, char *argv[])
     *x_k = 0.0;
     *y_k = 0.0;
     *q_k = 0.0;
-
+    t = 0.0;
     
     /* affichage + calcul */
+    printf("t,w_c,v_c,x,y,q\n");
     do
     {
+        t += Te;
         x_k1 = (*x_k) - (*v_c) * Te * sin((*q_k));
         y_k1 = (*y_k) + (*v_c) * Te * cos((*q_k));
         q_k1 = (*q_k) + Te * (*w_c);
@@ -176,7 +178,7 @@ int main(int argc, char *argv[])
         *x_k = x_k1;
         *y_k = y_k1;
         *q_k = q_k1;
-        printf("w_c = %lf\t v_c = %lf\t x = %lf\t y = %lf\t q = %lf\n", *w_c, *v_c, *x_k, *y_k, *q_k);
+        printf("%lf,%lf,%lf,%lf,%lf,%lf,\n", t, *w_c, *v_c, *x_k, *y_k, *q_k);
         sleep(1);
     }
     while( g_run );

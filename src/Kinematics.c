@@ -48,7 +48,7 @@ void signal_handler( int signal ) /* ->code du signal recu */
 /*######*/
 int main(int argc, char *argv[])
 {
-
+    double t;
     double *w_l;                  /* ->variable partagee pour la vitesse de rotation gauche */
     double *w_r;                  /* ->variable partagee pour la vitesse de rotation droite */
     double *w_c;                  /* ->variable partagee pour la vitesse de rotation centrale */
@@ -191,19 +191,23 @@ int main(int argc, char *argv[])
     /* installation EFFECTIVE du gestionnaire */
     sigaction( SIGUSR1, &sa, NULL ); /* ->associe signal_handler a la reception de SIGUSR1 */
 
+    t = 0.0;
     //CAST ZONES PARTAGEES
     w_l = (double *)(vAddrStateLeft);
     w_r = (double *)(vAddrStateRight);
     w_c = (double *)(vAddrVelocity);
     v_c = (double *)(vAddrVelocity + sizeof(double));
     
+
     /* affichage + calcul */
+    printf("t,w_l,w_r,w_c,v_c\n");
     do
     {
+        t += Te;
         *v_c = R0 * ( *(w_l) + *(w_r)) / 2;
         *w_c = R0 * ( *(w_r) - *(w_l) ) / W;
 
-        printf("w_l = %lf\t w_r = %lf\t w_c = %lf\t v_c = %lf\n", *w_l, *w_r, *w_c, *v_c);
+        printf("%lf,%lf,%lf,%lf,%lf\n", t, *w_l, *w_r, *w_c, *v_c);
         sleep(1);
     }
     while( g_run );

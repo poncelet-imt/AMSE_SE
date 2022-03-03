@@ -55,6 +55,7 @@ void signal_handler( int signal ) /* ->code du signal recu */
 /*######*/
 int main(int argc, char *argv[])
 {
+    double t;
     double *u;                    /* ->variable partagee pour commande                */
     double *tv;                   /* ->variable partagee pour target                  */
     double *w_k;                  /* ->variable partagee pour la vitesse de rotation  */
@@ -218,6 +219,8 @@ int main(int argc, char *argv[])
     sigaction( SIGUSR1, &sa, NULL ); /* ->associe signal_handler a la reception de SIGUSR1 */
     sigaction( SIGUSR2, &sa, NULL ); /* ->associe signal_handler a la reception de SIGUSR2 */
 
+
+    t = 0.0;
     u = (double *)(vAddrCommande);
     tv = (double *)(vAddrTarget);
     w_k = (double *)(vAddrState);
@@ -226,8 +229,10 @@ int main(int argc, char *argv[])
     e_k = (*tv) - (*w_k);
     E_k = T0 * e_k;
     /* affichage + calcul */
+    printf("t,tv,w_k,u\n");
     do
     {
+        t += T0;
         e_k1 = e_k;
         E_k1 = E_k;
 
@@ -235,12 +240,12 @@ int main(int argc, char *argv[])
         E_k = E_k1 + T0 * e_k; 
 
         *u = K * ( e_k + I * E_k + D * (e_k - e_k1) / T0 );
-        printf("tv = %lf\t wk = %lf\t u = %lf\n", *tv, *w_k, *u);
+
         while (g_pause)
         {
             sleep(1);
         }
-        
+        printf("%lf,%lf,%lf,%lf\n", t, *tv, *w_k, *u);
         sleep(1);
 
     }
