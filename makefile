@@ -12,14 +12,25 @@ EXEC:= DCMotor \
 	Kinematics \
 	Odometry
 
+EXEC_MOTOR = DCMotor \
+	RegPID \
+	SetU \
+	SetTv \
+	ResetState
 
+
+EXEC_MOTOR_PATH := $(EXEC_MOTOR:%=$(BIN_DIR)/%)
 EXEC_PATH := $(EXEC:%=$(BIN_DIR)/%)
 
 
-.PHONY: all clean
+.PHONY: all motor clean
+
+motor: $(EXEC_MOTOR_PATH)
+	@echo "building motor loop"
+
 
 all: $(EXEC_PATH)
-	@echo "building"
+	@echo "building all"
 
 $(BIN_DIR)/%: $(SRC_DIR)/%.c
 	$(CC) $^ $(C_FLAG) -o $@

@@ -21,16 +21,19 @@
 #define STR_LEN         256         /* ->taille par defaut des chaines           */
 #define MEMORY_LEN      64
 
+#define NBR_ARG 2
+
 /*######*/
 /* main */
 /*######*/
 int main(int argc, char *argv[])
 {
     char areaTarget[STR_LEN];
+    double tv_set;
 
 
     /* verification qu'il y a le bon nombre d'argument */
-    if (argc != 2) {
+    if (argc != NBR_ARG +1) {
         fprintf(stderr,"ERREUR : ---> nombre d'arguments invalides\n");
         return 1;
     }
@@ -46,6 +49,12 @@ int main(int argc, char *argv[])
     } else
     {
         fprintf(stderr,"ERREUR : ---> parametre directionnel non reconnu\n");
+        return 1;
+    }
+
+    if (sscanf(argv[2], "%lf", &tv_set)  == 0) 
+    {
+        fprintf(stderr,"ERREUR : ---> parametre 2: Target velocity doit etre un double\n");
         return 1;
     }
 
@@ -75,12 +84,8 @@ int main(int argc, char *argv[])
     tv = (double *)(vAddr);
 
     /* saisie */
-    do
-    {
-        fflush( stdin );
-        scanf("%lf", tv);
-    }
-    while( 1 );
+    *tv = tv_set;
+    printf("tv = %lf\n", *tv);
     printf("FIN\n");
     //shm_unlink(areaTarget);
     return( 0 );

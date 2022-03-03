@@ -18,6 +18,9 @@
 #define AREA_COMMANDE_R    "COMMAND_R"    /* ->nom de la zone de lecture commande_r              */
 #define AREA_STATE_L       "STATE_L"      /* ->nom de la zone d'ecriture state_l                 */
 #define AREA_STATE_R       "STATE_R"      /* ->nom de la zone d'ecriture state_l                 */
+#define AREA_TARGET_L    "TARGET_L"    /* ->nom de la zone de lecture target_l              */
+#define AREA_TARGET_R    "TARGET_R"    /* ->nom de la zone de lecture target_r              */
+
 
 #define STOP            "STOP"      /* ->chaine a saisir pour declencher l'arret */
 #define STR_LEN         256         /* ->taille par defaut des chaines           */
@@ -34,7 +37,7 @@ int main(int argc, char *argv[])
     double *w_k;                  /* ->variable partagee pour la vitesse de rotation  */
     double *i_k;                  /* ->variable partagee pour l'intensite du moteur   */
     char areaState[STR_LEN];
-
+    char areaTarget[STR_LEN];
     char areaCommande[STR_LEN];
 
 
@@ -47,12 +50,14 @@ int main(int argc, char *argv[])
     if (*argv[1] == 'L')
     {
         strcpy(areaCommande, AREA_COMMANDE_L);
+        strcpy(areaTarget, AREA_TARGET_L);
         strcpy(areaState, AREA_STATE_L);
 
     }
     else if (*argv[1] == 'R')
     {
         strcpy(areaCommande, AREA_COMMANDE_R);
+        strcpy(areaTarget, AREA_TARGET_R);
         strcpy(areaState, AREA_STATE_R);
     } else
     {
@@ -106,11 +111,37 @@ int main(int argc, char *argv[])
         fprintf(stderr,"         code  = %d (%s)\n", errno, (char *)(strerror(errno)));
         return( -errno );
     };
+    void *vAddr;                    /* ->adresse virtuelle sur la zone          */
+    double *tv;                  /* ->variable partagee pour target                        */
+    int  iShmFd;                    /* ->descripteur associe a la zone partagee */
+    /*..................................*/
+    /* tentative d'acces a la zone */
+    /*..................................*/
+    /* on essaie de se lier sans creer... */
+    if( (iShmFd = shm_open(areaTarget, O_RDWR, 0600)) < 0)
+    {  
+        fprintf(stderr,"ERREUR : ---> appel a shm_open()\n");
+        fprintf(stderr,"         code  = %d (%s)\n", errno, (char *)(strerror(errno)));
+        return( -errno );
+    };
+    /* on attribue la taille a la zone partagee */
+    ftruncate(iShmFd, MEMORY_LEN);
+    /* tentative de mapping de la zone dans l'espace memoire du */
+    /* processus                                                */
+    if( (vAddr = mmap(NULL, MEMORY_LEN, PROT_READ | PROT_WRITE, MAP_SHARED, iShmFd, 0 ))  == NULL)
+    {
+        fprintf(stderr,"ERREUR : ---> appel a mmap()\n");
+        fprintf(stderr,"         code  = %d (%s)\n", errno, (char *)(strerror(errno)));
+        return( -errno );
+    };
 
+
+    tv = (double *)(vAddr);
     u  = (double *)(vAddrCommande);
     w_k = (double *)(vAddrState);
     i_k = (double *)(vAddrState + sizeof(double));
 
+    *tv = 0.0;
     *u = 0.0;
     *w_k = 0.0;
     *i_k = 0.0;
