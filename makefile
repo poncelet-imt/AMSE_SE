@@ -10,7 +10,9 @@ EXEC:= DCMotor \
 	SetU \
 	SetTv \
 	Kinematics \
-	Odometry
+	Odometry \
+	GO \
+	TURN 
 
 EXEC_MOTOR = DCMotor \
 	RegPID \
