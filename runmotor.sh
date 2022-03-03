@@ -1,3 +1,4 @@
+#!/bin/bash
 binDir="./bin/"
 
 resultDir="./result/"
